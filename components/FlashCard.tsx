@@ -2,6 +2,9 @@
 
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
+import { furigana as toFurigana } from "@/lib/furigana";
+import { toRomaji } from "@/lib/romaji";
+import { showsRomaji, type RomajiMode } from "@/lib/storage";
 import type { Answer, Word } from "@/lib/types";
 
 /** Horizontal distance (px) or flick speed (px/s) that counts as a swipe. */
@@ -20,9 +23,12 @@ type Props = {
   flipped: boolean;
   onFlip: () => void;
   onAnswer: (answer: Answer) => void;
+  /** reading above kanji on the front */
+  furigana?: boolean;
+  romaji?: RomajiMode;
 };
 
-export function FlashCard({ word, flipped, onFlip, onAnswer }: Props) {
+export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, romaji = "off" }: Props) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 250], [-12, 12]);
   const rightOpacity = useTransform(x, [0, SWIPE_OFFSET], [0, 1]);
@@ -64,6 +70,7 @@ export function FlashCard({ word, flipped, onFlip, onAnswer }: Props) {
 
   const showReading = word.reading !== word.expression;
   const [primary, ...rest] = word.meanings;
+  const romajiText = romaji === "off" ? "" : toRomaji(word.reading);
 
   return (
     <div className="flex w-full flex-col items-center gap-6">
@@ -97,8 +104,13 @@ export function FlashCard({ word, flipped, onFlip, onAnswer }: Props) {
               {word.level}
             </span>
             <span lang="ja" className="text-center text-6xl leading-tight font-medium break-keep">
-              {word.expression}
+              {furigana ? <Furigana word={word} /> : word.expression}
             </span>
+            {showsRomaji(romaji, "front") && (
+              <span data-testid="romaji-front" className="text-center text-lg text-muted-foreground">
+                {romajiText}
+              </span>
+            )}
             <span className="absolute bottom-5 text-sm text-muted-foreground">Tap to reveal</span>
           </button>
 
@@ -117,6 +129,11 @@ export function FlashCard({ word, flipped, onFlip, onAnswer }: Props) {
                   {showReading && (
                     <p lang="ja" data-testid="reading" className="mt-1 text-2xl text-muted-foreground">
                       {word.reading}
+                    </p>
+                  )}
+                  {showsRomaji(romaji, "back") && (
+                    <p data-testid="romaji" className="mt-1 text-muted-foreground">
+                      {romajiText}
                     </p>
                   )}
                 </div>
@@ -172,5 +189,20 @@ export function FlashCard({ word, flipped, onFlip, onAnswer }: Props) {
         </button>
       </div>
     </div>
+  );
+}
+
+function Furigana({ word }: { word: Word }) {
+  return toFurigana(word.expression, word.reading).map((seg, i) =>
+    seg.ruby ? (
+      <ruby key={i}>
+        {seg.text}
+        <rp>(</rp>
+        <rt className="text-[0.4em] font-normal text-muted-foreground">{seg.ruby}</rt>
+        <rp>)</rp>
+      </ruby>
+    ) : (
+      seg.text
+    ),
   );
 }

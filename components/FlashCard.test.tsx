@@ -42,6 +42,40 @@ describe("FlashCard front", () => {
   });
 });
 
+describe("FlashCard furigana and romaji", () => {
+  const word = makeWord({ expression: "食べる", reading: "たべる" });
+
+  it("are off by default", () => {
+    const { container } = render(
+      <FlashCard word={word} flipped={false} onFlip={vi.fn()} onAnswer={vi.fn()} />,
+    );
+    expect(container.querySelector("ruby")).toBeNull();
+    expect(screen.queryByTestId("romaji-front")).not.toBeInTheDocument();
+  });
+
+  it("puts furigana over the kanji on the front", () => {
+    setup({ word, furigana: true });
+    const rt = screen.getByText("た");
+    expect(rt.tagName).toBe("RT");
+    expect(rt.closest("ruby")).toHaveTextContent(/^食/);
+  });
+
+  it.each([
+    ["front", true, false],
+    ["back", false, true],
+    ["both", true, true],
+  ] as const)("romaji %s shows on front %s / back %s", (romaji, front, back) => {
+    const { unmount } = render(
+      <FlashCard word={word} flipped={false} onFlip={vi.fn()} onAnswer={vi.fn()} romaji={romaji} />,
+    );
+    expect(!!screen.queryByTestId("romaji-front")).toBe(front);
+    unmount();
+    render(<FlashCard word={word} flipped onFlip={vi.fn()} onAnswer={vi.fn()} romaji={romaji} />);
+    expect(!!screen.queryByTestId("romaji")).toBe(back);
+    if (back) expect(screen.getByTestId("romaji")).toHaveTextContent("taberu");
+  });
+});
+
 describe("FlashCard back", () => {
   it("shows reading, all meanings with the first emphasised, and the example", () => {
     setup({ flipped: true });

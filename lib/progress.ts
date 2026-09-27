@@ -42,8 +42,14 @@ export function restoreEntry(progress: Progress, id: string, entry: MissedEntry 
   return { ...progress, missed };
 }
 
-export const missedCount = (progress: Progress) => Object.keys(progress.missed).length;
+/**
+ * Every card in the pile, as refs for a review session (caller shuffles).
+ * Excluded words stay in the pile but are skipped, so including them again brings them back.
+ */
+export const pileCards = (progress: Progress, excluded: readonly string[] = []) =>
+  Object.entries(progress.missed)
+    .filter(([id]) => !excluded.includes(id))
+    .map(([id, { level }]) => ({ id, level }));
 
-/** Every card in the pile, as refs for a review session (caller shuffles). */
-export const pileCards = (progress: Progress) =>
-  Object.entries(progress.missed).map(([id, { level }]) => ({ id, level }));
+export const missedCount = (progress: Progress, excluded: readonly string[] = []) =>
+  pileCards(progress, excluded).length;

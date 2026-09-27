@@ -42,13 +42,12 @@ export function Home() {
         >
           Word lists
         </Link>
-        <button
-          type="button"
-          disabled
-          className="rounded-full border-2 border-border py-3.5 font-semibold text-muted-foreground"
+        <Link
+          href="/settings"
+          className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold"
         >
-          Settings (soon)
-        </button>
+          Settings
+        </Link>
       </nav>
 
       <Link href="/about" className="mt-auto py-2 text-center text-sm text-muted-foreground underline">

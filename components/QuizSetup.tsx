@@ -18,7 +18,7 @@ export function QuizSetup() {
 
   if (!store) return <Loading />;
   const { settings, study } = store;
-  const missed = missedCount(study.progress);
+  const missed = missedCount(study.progress, settings.excluded);
 
   const toggleLevel = (level: Level) => {
     const has = settings.levels.includes(level);
@@ -34,7 +34,12 @@ export function QuizSetup() {
     setStarting(true);
     setError(null);
     try {
-      await startNormalSession(settings);
+      const deck = await startNormalSession(settings);
+      if (deck.cards.length === 0) {
+        setError("Every word in the selected levels is excluded. Include some again in Word lists.");
+        setStarting(false);
+        return;
+      }
       router.push("/study");
     } catch {
       setError("Couldn't load the word list. Check your connection and try again.");
@@ -43,7 +48,7 @@ export function QuizSetup() {
   };
 
   const review = () => {
-    startReviewSession(study.progress);
+    startReviewSession(study.progress, settings.excluded);
     router.push("/study");
   };
 

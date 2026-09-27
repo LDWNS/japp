@@ -53,6 +53,12 @@ describe("missedCount", () => {
     p = applyAnswer(p, "b", "N5", "wrong");
     expect(missedCount(p)).toBe(2);
   });
+
+  it("skips excluded words", () => {
+    let p = applyAnswer(emptyProgress(), "a", "N5", "wrong");
+    p = applyAnswer(p, "b", "N5", "wrong");
+    expect(missedCount(p, ["a"])).toBe(1);
+  });
 });
 
 describe("pileCards", () => {
@@ -63,5 +69,12 @@ describe("pileCards", () => {
       { id: "a", level: "N5" },
       { id: "b", level: "N3" },
     ]);
+  });
+
+  it("leaves out excluded words without dropping them from the pile", () => {
+    let p = applyAnswer(emptyProgress(), "a", "N5", "wrong");
+    p = applyAnswer(p, "b", "N3", "wrong");
+    expect(pileCards(p, ["a"])).toEqual([{ id: "b", level: "N3" }]);
+    expect(pileCards(p)).toHaveLength(2);
   });
 });

@@ -5,13 +5,35 @@ import { LEVELS, LevelSchema, type Level } from "./types";
 
 export const STORAGE_KEY = "japp:v1";
 
+export const ROMAJI_MODES = ["off", "front", "back", "both"] as const;
+export type RomajiMode = (typeof ROMAJI_MODES)[number];
+
+// fields added after v1 have defaults so older saved data still parses
 export const SettingsSchema = z.object({
   levels: z.array(LevelSchema).min(1),
   count: z.union([z.literal(10), z.literal(20), z.literal(50), z.literal(100), z.literal("all")]),
+  furigana: z.boolean().default(false),
+  romaji: z.enum(ROMAJI_MODES).default("off"),
+  /** word ids left out of every session */
+  excluded: z.array(z.string()).default(() => []),
 });
-export type Settings = { levels: Level[]; count: DeckCount };
+export type Settings = {
+  levels: Level[];
+  count: DeckCount;
+  furigana: boolean;
+  romaji: RomajiMode;
+  excluded: string[];
+};
 
-export const defaultSettings = (): Settings => ({ levels: [LEVELS[0]], count: COUNT_OPTIONS[1] });
+export const defaultSettings = (): Settings => ({
+  levels: [LEVELS[0]],
+  count: COUNT_OPTIONS[1],
+  furigana: false,
+  romaji: "off",
+  excluded: [],
+});
+
+export const showsRomaji = (mode: RomajiMode, side: "front" | "back") => mode === side || mode === "both";
 
 const StoredSchema = z.object({
   study: StudyStateSchema,
