@@ -9,6 +9,7 @@ import { missedCount } from "@/lib/progress";
 import { isDone, summarize, type Session } from "@/lib/session";
 import { useStore } from "@/lib/store";
 import { LEVELS } from "@/lib/types";
+import { HomeLink } from "./HomeLink";
 import { Loading } from "./Loading";
 
 export function Summary() {
@@ -28,6 +29,7 @@ export function Summary() {
         >
           {session ? "Back to cards" : "Choose cards"}
         </Link>
+        <HomeLink center />
       </div>
     );
   }
@@ -39,6 +41,7 @@ export function Summary() {
   return (
     <div className="flex flex-1 flex-col gap-6 py-4">
       <header>
+        <HomeLink />
         <h1 className="text-3xl font-bold">{session.endedEarly ? "Session ended" : "Session complete"}</h1>
         <p className="mt-1 text-muted-foreground">
           {stats.answered} of {stats.total} cards answered

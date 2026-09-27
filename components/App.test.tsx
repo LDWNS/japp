@@ -253,6 +253,7 @@ describe("Summary", () => {
     expect(screen.getByRole("heading", { name: "Session ended" })).toBeInTheDocument();
     expect(screen.getByText("2 of 3 cards answered")).toBeInTheDocument();
     expect(screen.getByText("50%")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "‹ Home" })).toHaveAttribute("href", "/");
     const list = await screen.findByRole("list");
     expect(within(list).getByText("水")).toBeInTheDocument();
     expect(within(list).queryByText("山")).not.toBeInTheDocument();
@@ -266,10 +267,18 @@ describe("Summary", () => {
     startWith([["a", "N5"]]);
     await renderAsync(<Summary />);
     expect(screen.getByRole("link", { name: "Back to cards" })).toHaveAttribute("href", "/study");
+    expect(screen.getByRole("link", { name: "‹ Home" })).toHaveAttribute("href", "/");
   });
 });
 
 describe("WordLists", () => {
+  it("puts the home link above the list, not after it", async () => {
+    await renderAsync(<WordLists />);
+    const home = screen.getByRole("link", { name: "‹ Home" });
+    expect(home).toHaveAttribute("href", "/");
+    expect(home.compareDocumentPosition(screen.getByRole("list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("shows one level at a time", async () => {
     const user = userEvent.setup();
     await renderAsync(<WordLists />);

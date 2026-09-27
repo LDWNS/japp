@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { startNormalSession, startReviewSession } from "@/lib/actions";
@@ -8,6 +7,7 @@ import { COUNT_OPTIONS, type DeckCount } from "@/lib/deck";
 import { missedCount } from "@/lib/progress";
 import { updateSettings, useStore } from "@/lib/store";
 import { LEVELS, type Level } from "@/lib/types";
+import { HomeLink } from "./HomeLink";
 import { Loading } from "./Loading";
 
 export function QuizSetup() {
@@ -55,6 +55,7 @@ export function QuizSetup() {
   return (
     <div className="flex flex-1 flex-col gap-8 py-4">
       <header>
+        <HomeLink />
         <h1 className="text-3xl font-bold">Quiz</h1>
         <p className="mt-1 text-muted-foreground">Pick levels and how many cards</p>
       </header>
@@ -130,9 +131,6 @@ export function QuizSetup() {
         >
           Review missed ({missed})
         </button>
-        <Link href="/" className="py-2 text-center text-sm text-muted-foreground underline">
-          Back
-        </Link>
       </div>
     </div>
   );

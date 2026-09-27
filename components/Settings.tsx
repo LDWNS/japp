@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ROMAJI_MODES, type RomajiMode } from "@/lib/storage";
 import { updateSettings, useStore } from "@/lib/store";
+import { HomeLink } from "./HomeLink";
 import { Loading } from "./Loading";
 
 const ROMAJI_LABELS: Record<RomajiMode, string> = {
@@ -22,6 +23,7 @@ export function Settings() {
   return (
     <div className="flex flex-1 flex-col gap-8 py-4">
       <header>
+        <HomeLink />
         <h1 className="text-3xl font-bold">Settings</h1>
       </header>
 
@@ -101,10 +103,6 @@ export function Settings() {
           </div>
         </div>
       </section>
-
-      <Link href="/" className="mt-auto rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
-        Back
-      </Link>
     </div>
   );
 }
