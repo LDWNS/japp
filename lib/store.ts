@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { studyReducer, type StudyAction } from "./session";
+import { studyReducer, type StudyAction, type StudyState } from "./session";
 import { load, save, STORAGE_KEY, type Settings, type Stored } from "./storage";
 
 /**
@@ -38,10 +38,28 @@ function subscribe(listener: () => void) {
   };
 }
 
+/** Word to add to (+) or drop from (-) settings.excluded after a study action. */
+function exclusionChange(before: StudyState, after: StudyState) {
+  const was = before.session?.results ?? [];
+  const now = after.session?.results ?? [];
+  // an exclude answer was just given, or just undone
+  if (now.length === was.length + 1 && now.at(-1)?.answer === "exclude") return { add: now.at(-1)!.id };
+  if (now.length === was.length - 1 && was.at(-1)?.answer === "exclude") return { remove: was.at(-1)!.id };
+  return null;
+}
+
 export function dispatch(action: StudyAction) {
   const prev = current();
   const study = studyReducer(prev.study, action);
-  if (study !== prev.study) set({ ...prev, study });
+  if (study === prev.study) return;
+  let { settings } = prev;
+  const change = action.type === "answer" || action.type === "undo" ? exclusionChange(prev.study, study) : null;
+  if (change?.add && !settings.excluded.includes(change.add)) {
+    settings = { ...settings, excluded: [...settings.excluded, change.add] };
+  } else if (change?.remove) {
+    settings = { ...settings, excluded: settings.excluded.filter((e) => e !== change.remove) };
+  }
+  set({ study, settings });
 }
 
 export function updateSettings(settings: Settings) {

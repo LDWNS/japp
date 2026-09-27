@@ -44,6 +44,11 @@ export function Summary() {
           {stats.answered} of {stats.total} cards answered
           {session.mode === "review" && " · review"}
         </p>
+        {stats.excluded > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {stats.excluded} {stats.excluded === 1 ? "word" : "words"} excluded as known
+          </p>
+        )}
       </header>
 
       <dl className="grid grid-cols-3 gap-3 text-center">

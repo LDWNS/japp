@@ -191,6 +191,27 @@ describe("Study", () => {
     expect(load().study.progress.missed).toEqual({});
   });
 
+  it("know it excludes the word, and undo includes it again", async () => {
+    const user = userEvent.setup();
+    act(() => updateSettings({ ...defaultSettings(), excluded: ["c"] }));
+    startWith([["a", "N5"], ["b", "N5"]]);
+    await renderAsync(<Study />);
+    await user.click(screen.getByRole("button", { name: "Show answer" }));
+    await user.click(screen.getByRole("button", { name: /Know it/ }));
+    expect(await screen.findByText("山")).toBeInTheDocument();
+    expect(load().settings.excluded).toEqual(["c", "a"]);
+    expect(load().study.session!.results.at(-1)!.answer).toBe("exclude");
+
+    await user.click(screen.getByRole("button", { name: /Undo/ }));
+    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+    expect(load().settings.excluded).toEqual(["c"]);
+
+    // a plain answer leaves the excluded list alone
+    await user.keyboard("{ArrowRight}");
+    expect(await screen.findByText("山")).toBeInTheDocument();
+    expect(load().settings.excluded).toEqual(["c"]);
+  });
+
   it("End finishes early", async () => {
     const user = userEvent.setup();
     startWith([["a", "N5"], ["b", "N5"]]);

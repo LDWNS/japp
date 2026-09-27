@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { applyAnswer, emptyProgress, MissedEntrySchema, ProgressSchema, restoreEntry } from "./progress";
-import { LevelSchema, type Answer } from "./types";
+import { ANSWERS, LevelSchema, type Answer } from "./types";
 
 export const CardRefSchema = z.object({ id: z.string(), level: LevelSchema });
 export type CardRef = z.infer<typeof CardRefSchema>;
 
 export const ResultSchema = z.object({
   id: z.string(),
-  answer: z.enum(["right", "wrong"]),
+  answer: z.enum(ANSWERS),
   /** pile entry before this answer, so undo can restore it */
   prev: MissedEntrySchema.nullable(),
 });
@@ -104,12 +104,13 @@ export function studyReducer(state: StudyState, action: StudyAction): StudyState
 }
 
 export function summarize(session: Session) {
-  const right = session.results.filter((r) => r.answer === "right").length;
+  const wrong = session.results.filter((r) => r.answer === "wrong").length;
   return {
     answered: session.results.length,
     total: session.cards.length,
-    right,
-    wrong: session.results.length - right,
+    right: session.results.length - wrong,
+    wrong,
+    excluded: session.results.filter((r) => r.answer === "exclude").length,
     wrongIds: session.results.filter((r) => r.answer === "wrong").map((r) => r.id),
   };
 }

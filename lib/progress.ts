@@ -21,6 +21,7 @@ export const emptyProgress = (): Progress => ({ missed: {} });
  * Wrong → card (re)enters the pile with streak 0.
  * Right on a pile card (any session) → streak+1; leaves the pile at STREAK_TO_CLEAR.
  * Right on a card not in the pile → no change.
+ * Exclude counts as right here; the word is excluded via settings (see store).
  */
 export function applyAnswer(progress: Progress, id: string, level: Level, answer: Answer): Progress {
   const missed = { ...progress.missed };

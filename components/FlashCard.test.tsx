@@ -37,7 +37,8 @@ describe("FlashCard front", () => {
     const { onAnswer, user } = setup();
     expect(screen.getByRole("button", { name: /Got it/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Missed/ })).toBeDisabled();
-    await user.keyboard("{ArrowRight}{ArrowLeft}");
+    expect(screen.getByRole("button", { name: /Know it/ })).toBeDisabled();
+    await user.keyboard("{ArrowRight}{ArrowLeft}{ArrowDown}");
     expect(onAnswer).not.toHaveBeenCalled();
   });
 });
@@ -101,6 +102,7 @@ describe("FlashCard back", () => {
   it.each([
     [/Got it/, "right"],
     [/Missed/, "wrong"],
+    [/Know it/, "exclude"],
   ])("button %s answers %s", async (name, answer) => {
     const { onAnswer, user } = setup({ flipped: true });
     await user.click(screen.getByRole("button", { name }));
@@ -110,6 +112,7 @@ describe("FlashCard back", () => {
   it.each([
     ["{ArrowRight}", "right"],
     ["{ArrowLeft}", "wrong"],
+    ["{ArrowDown}", "exclude"],
   ])("key %s answers %s", async (key, answer) => {
     const { onAnswer, user } = setup({ flipped: true });
     await user.keyboard(key);
@@ -127,13 +130,21 @@ describe("FlashCard back", () => {
 
 describe("swipeAnswer", () => {
   it.each([
-    [150, 0, "right"],
-    [-150, 0, "wrong"],
-    [30, 800, "right"],
-    [-30, -800, "wrong"],
-    [60, 100, null],
-    [-99, -499, null],
-  ])("offset %d, velocity %d → %s", (offset, velocity, expected) => {
-    expect(swipeAnswer(offset, velocity)).toBe(expected);
+    [150, 0, 0, 0, "right"],
+    [-150, 0, 0, 0, "wrong"],
+    [30, 0, 800, 0, "right"],
+    [-30, 0, -800, 0, "wrong"],
+    [60, 0, 100, 0, null],
+    [-99, 0, -499, 0, null],
+    [0, 150, 0, 0, "exclude"],
+    [10, 40, 0, 800, "exclude"],
+    [0, 99, 0, 499, null],
+    // swiping up does nothing
+    [0, -200, 0, -900, null],
+    // the dominant axis decides
+    [120, 150, 0, 0, "exclude"],
+    [150, 120, 0, 0, "right"],
+  ])("offset (%d, %d), velocity (%d, %d) → %s", (ox, oy, vx, vy, expected) => {
+    expect(swipeAnswer({ x: ox, y: oy }, { x: vx, y: vy })).toBe(expected);
   });
 });
