@@ -5,8 +5,10 @@ import { load } from "@/lib/storage";
 import { dispatch } from "@/lib/store";
 import { mockWordFetch, renderAsync, resetApp } from "@/test/fixtures";
 import { Home } from "./Home";
+import { QuizSetup } from "./QuizSetup";
 import { Study } from "./Study";
 import { Summary } from "./Summary";
+import { WordLists } from "./WordLists";
 
 const router = { push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() };
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
@@ -21,9 +23,25 @@ const startWith = (ids: [string, "N5" | "N4"][], mode: "normal" | "review" = "no
   act(() => dispatch({ type: "start", mode, cards: ids.map(([id, level]) => ({ id, level })) }));
 
 describe("Home", () => {
+  it("links to the quiz and word lists, settings not yet available", () => {
+    render(<Home />);
+    expect(screen.getByRole("link", { name: "Start quiz" })).toHaveAttribute("href", "/quiz");
+    expect(screen.getByRole("link", { name: "Word lists" })).toHaveAttribute("href", "/words");
+    expect(screen.getByRole("button", { name: "Settings (soon)" })).toBeDisabled();
+    expect(screen.queryByRole("link", { name: /Resume/ })).not.toBeInTheDocument();
+  });
+
+  it("offers to resume an unfinished session", () => {
+    startWith([["a", "N5"], ["b", "N5"]]);
+    render(<Home />);
+    expect(screen.getByRole("link", { name: "Resume session (0/2)" })).toHaveAttribute("href", "/study");
+  });
+});
+
+describe("QuizSetup", () => {
   it("toggles levels but keeps at least one selected", async () => {
     const user = userEvent.setup();
-    render(<Home />);
+    render(<QuizSetup />);
     const n5 = screen.getByRole("button", { name: "N5" });
     const n4 = screen.getByRole("button", { name: "N4" });
     expect(n5).toHaveAttribute("aria-pressed", "true");
@@ -38,7 +56,7 @@ describe("Home", () => {
 
   it("selects a card count", async () => {
     const user = userEvent.setup();
-    render(<Home />);
+    render(<QuizSetup />);
     await user.click(screen.getByRole("radio", { name: "All" }));
     expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute("aria-checked", "true");
     expect(load().settings.count).toBe("all");
@@ -46,7 +64,7 @@ describe("Home", () => {
 
   it("starts a random session from the selected levels", async () => {
     const user = userEvent.setup();
-    render(<Home />);
+    render(<QuizSetup />);
     await user.click(screen.getByRole("button", { name: "N4" }));
     await user.click(screen.getByRole("button", { name: "Start" }));
     expect(router.push).toHaveBeenCalledWith("/study");
@@ -59,7 +77,7 @@ describe("Home", () => {
   it("shows an error when word lists fail to load", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 500 })));
     const user = userEvent.setup();
-    render(<Home />);
+    render(<QuizSetup />);
     await user.click(screen.getByRole("button", { name: "Start" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't load/);
     expect(router.push).not.toHaveBeenCalled();
@@ -67,7 +85,7 @@ describe("Home", () => {
 
   it("review is disabled with an empty pile and reviews the whole pile otherwise", async () => {
     const user = userEvent.setup();
-    const { unmount } = render(<Home />);
+    const { unmount } = render(<QuizSetup />);
     expect(screen.getByRole("button", { name: "Review missed (0)" })).toBeDisabled();
     unmount();
 
@@ -78,17 +96,11 @@ describe("Home", () => {
         dispatch({ type: "answer", answer: "wrong" });
       }
     });
-    render(<Home />);
+    render(<QuizSetup />);
     await user.click(screen.getByRole("button", { name: "Review missed (2)" }));
     const session = load().study.session!;
     expect(session.mode).toBe("review");
     expect(session.cards.map((c) => c.id).sort()).toEqual(["a", "d"]);
-  });
-
-  it("offers to resume an unfinished session", () => {
-    startWith([["a", "N5"], ["b", "N5"]]);
-    render(<Home />);
-    expect(screen.getByRole("link", { name: "Resume session (0/2)" })).toHaveAttribute("href", "/study");
   });
 });
 
@@ -188,5 +200,46 @@ describe("Summary", () => {
     startWith([["a", "N5"]]);
     await renderAsync(<Summary />);
     expect(screen.getByRole("link", { name: "Back to cards" })).toHaveAttribute("href", "/study");
+  });
+});
+
+describe("WordLists", () => {
+  it("shows one level at a time", async () => {
+    const user = userEvent.setup();
+    await renderAsync(<WordLists />);
+    expect(screen.getByRole("tab", { name: "N5" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("3 words")).toBeInTheDocument();
+    expect(screen.getByText("水")).toBeInTheDocument();
+    expect(screen.getByText("やま")).toBeInTheDocument();
+    expect(screen.queryByText("運転")).not.toBeInTheDocument();
+
+    // switching levels suspends on the next word list
+    await act(() => user.click(screen.getByRole("tab", { name: "N4" })));
+    expect(await screen.findByText("運転")).toBeInTheDocument();
+    expect(screen.queryByText("水")).not.toBeInTheDocument();
+
+    await act(() => user.keyboard("{ArrowRight}"));
+    expect(screen.getByRole("tab", { name: "N3" })).toHaveFocus();
+    expect(await screen.findByText("0 words")).toBeInTheDocument();
+  });
+
+  it("filters by kanji, kana or meaning", async () => {
+    const user = userEvent.setup();
+    await renderAsync(<WordLists />);
+    const search = screen.getByRole("searchbox", { name: "Search words" });
+
+    await user.type(search, "MOUNT");
+    expect(await screen.findByText("1 of 3 words")).toBeInTheDocument();
+    expect(screen.getByText("山")).toBeInTheDocument();
+    expect(screen.queryByText("水")).not.toBeInTheDocument();
+
+    await user.clear(search);
+    await user.type(search, "みず");
+    expect(await screen.findByText("1 of 3 words")).toBeInTheDocument();
+    expect(screen.getByText("水")).toBeInTheDocument();
+
+    await user.clear(search);
+    await user.type(search, "zzz");
+    expect(await screen.findByText("No matches.")).toBeInTheDocument();
   });
 });

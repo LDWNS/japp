@@ -40,7 +40,7 @@ export async function answerBySwipe(page: Page, direction: "left" | "right") {
 }
 
 export async function startSession(page: Page, { levels = ["N5"], count = "10" } = {}) {
-  await page.goto("/");
+  await page.goto("/quiz");
   for (const level of levels) {
     const btn = page.getByRole("button", { name: level, exact: true });
     if ((await btn.getAttribute("aria-pressed")) !== "true") await btn.click();

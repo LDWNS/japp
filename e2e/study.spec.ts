@@ -1,6 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { answerBySwipe, counter, startSession, swipe } from "./helpers";
 
+test("welcome menu leads to the quiz and word lists", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Settings (soon)" })).toBeDisabled();
+  await page.getByRole("link", { name: "Word lists" }).click();
+  await expect(page).toHaveURL(/\/words$/);
+  await page.getByRole("tab", { name: "N4" }).click();
+  await page.getByRole("searchbox", { name: "Search words" }).fill("driving");
+  await expect(page.getByText("運転", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Back" }).click();
+  await page.getByRole("link", { name: "Start quiz" }).click();
+  await expect(page).toHaveURL(/\/quiz$/);
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByTestId("flashcard")).toBeVisible();
+});
+
 test("full session by swipe, then review the missed pile until it clears", async ({ page }) => {
   await startSession(page);
   await expect(page.getByText("1 / 10")).toBeVisible();
@@ -47,7 +62,7 @@ test("undo steps back across several cards", async ({ page }) => {
   await page.getByRole("button", { name: /Undo/ }).click();
   await expect(page.getByText("1 / 10")).toBeVisible();
   await expect(page.getByRole("button", { name: /Undo/ })).toBeDisabled();
-  await page.goto("/");
+  await page.goto("/quiz");
   await expect(page.getByRole("button", { name: "Review missed (0)" })).toBeDisabled();
 });
 
@@ -59,6 +74,7 @@ test("session and pile survive a reload", async ({ page }) => {
   await expect(page.getByText("3 / 20")).toBeVisible();
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Resume session (2/20)" })).toBeVisible();
+  await page.getByRole("link", { name: "Start quiz" }).click();
   await expect(page.getByRole("button", { name: "Review missed (1)" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "N4", exact: true })).toHaveAttribute("aria-pressed", "true");
 });

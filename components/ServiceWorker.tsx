@@ -7,7 +7,7 @@ import { useEffect } from "react";
 const CACHE = "japp-v1";
 
 /** Routes reached via router.push rather than a visible <Link>; prefetch so they work offline. */
-const OFFLINE_ROUTES = ["/", "/study", "/summary", "/about"];
+const OFFLINE_ROUTES = ["/", "/quiz", "/study", "/summary", "/words", "/about"];
 
 /**
  * Assets loaded on the very first visit arrive before the service worker

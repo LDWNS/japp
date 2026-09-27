@@ -22,7 +22,7 @@ export function Summary() {
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <p>{session ? "Session still in progress." : "No finished session yet."}</p>
         <Link
-          href={session ? "/study" : "/"}
+          href={session ? "/study" : "/quiz"}
           className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground"
         >
           {session ? "Back to cards" : "Choose cards"}
@@ -74,7 +74,7 @@ export function Summary() {
         >
           Practice missed ({pile})
         </button>
-        <Link href="/" className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
+        <Link href="/quiz" className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
           New session
         </Link>
       </div>

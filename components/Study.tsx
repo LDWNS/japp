@@ -27,7 +27,7 @@ export function Study() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <p>No active session.</p>
-        <Link href="/" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground">
+        <Link href="/quiz" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground">
           Choose cards
         </Link>
       </div>
