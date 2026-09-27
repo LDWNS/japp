@@ -22,4 +22,6 @@ export type Word = z.infer<typeof WordSchema>;
 
 export const WordListSchema = z.array(WordSchema);
 
-export type Answer = "right" | "wrong";
+/** "exclude" counts as right and also leaves the word out of future sessions. */
+export const ANSWERS = ["right", "wrong", "exclude"] as const;
+export type Answer = (typeof ANSWERS)[number];

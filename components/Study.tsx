@@ -121,7 +121,7 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
       </div>
 
       <p className="hidden text-center text-xs text-muted-foreground sm:block">
-        Space: reveal · ←: missed · →: got it · Backspace: undo
+        Space: reveal · ←: missed · →: got it · ↓: exclude · Backspace: undo
       </p>
     </div>
   );

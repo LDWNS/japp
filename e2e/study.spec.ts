@@ -41,6 +41,19 @@ test("words unticked in the word list are left out of the quiz", async ({ page }
   await expect(page.getByText(`1 / ${total - 1}`)).toBeVisible();
 });
 
+test("swiping down excludes a known word from the quiz", async ({ page }) => {
+  await startSession(page);
+  const word = await page.getByTestId("flashcard").locator("[lang=ja]").first().textContent();
+  await answerBySwipe(page, "down");
+  await expect(page.getByText("2 / 10")).toBeVisible();
+  await page.getByRole("button", { name: "End" }).click();
+  await expect(page.getByText("1 word excluded as known")).toBeVisible();
+
+  await page.goto("/words");
+  await expect(page.getByText(/· 1 excluded/)).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: `Include ${word} in quizzes` })).not.toBeChecked();
+});
+
 test("full session by swipe, then review the missed pile until it clears", async ({ page }) => {
   await startSession(page);
   await expect(page.getByText("1 / 10")).toBeVisible();

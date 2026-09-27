@@ -7,14 +7,24 @@ import { toRomaji } from "@/lib/romaji";
 import { showsRomaji, type RomajiMode } from "@/lib/storage";
 import type { Answer, Word } from "@/lib/types";
 
-/** Horizontal distance (px) or flick speed (px/s) that counts as a swipe. */
+/** Distance (px) or flick speed (px/s) that counts as a swipe. */
 export const SWIPE_OFFSET = 100;
 export const SWIPE_VELOCITY = 500;
 
-/** Direction a drag gesture resolves to, or null to snap back. */
-export function swipeAnswer(offsetX: number, velocityX: number): Answer | null {
-  if (offsetX > SWIPE_OFFSET || velocityX > SWIPE_VELOCITY) return "right";
-  if (offsetX < -SWIPE_OFFSET || velocityX < -SWIPE_VELOCITY) return "wrong";
+/**
+ * Answer a drag gesture resolves to, or null to snap back.
+ * Right = got it, left = missed, down = got it and exclude. The dominant axis wins.
+ */
+export function swipeAnswer(
+  offset: { x: number; y: number },
+  velocity: { x: number; y: number },
+): Answer | null {
+  const vertical = Math.abs(offset.y) > Math.abs(offset.x);
+  if (vertical) {
+    return offset.y > SWIPE_OFFSET || velocity.y > SWIPE_VELOCITY ? "exclude" : null;
+  }
+  if (offset.x > SWIPE_OFFSET || velocity.x > SWIPE_VELOCITY) return "right";
+  if (offset.x < -SWIPE_OFFSET || velocity.x < -SWIPE_VELOCITY) return "wrong";
   return null;
 }
 
@@ -30,9 +40,11 @@ type Props = {
 
 export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, romaji = "off" }: Props) {
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-250, 250], [-12, 12]);
   const rightOpacity = useTransform(x, [0, SWIPE_OFFSET], [0, 1]);
   const wrongOpacity = useTransform(x, [-SWIPE_OFFSET, 0], [1, 0]);
+  const excludeOpacity = useTransform(y, [0, SWIPE_OFFSET], [0, 1]);
   const reduceMotion = useReducedMotion();
   const leaving = useRef(false);
 
@@ -44,10 +56,15 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
         onAnswer(a);
         return;
       }
-      const target = (a === "right" ? 1 : -1) * (window.innerWidth + 200);
-      animate(x, target, { duration: 0.25, ease: "easeIn" }).then(() => onAnswer(a));
+      const exit = { duration: 0.25, ease: "easeIn" } as const;
+      const done = () => onAnswer(a);
+      if (a === "exclude") {
+        animate(y, window.innerHeight + 200, exit).then(done);
+      } else {
+        animate(x, (a === "right" ? 1 : -1) * (window.innerWidth + 200), exit).then(done);
+      }
     },
-    [flipped, onAnswer, reduceMotion, x],
+    [flipped, onAnswer, reduceMotion, x, y],
   );
 
   useEffect(() => {
@@ -62,6 +79,9 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
         answer("right");
       } else if (e.key === "ArrowLeft") {
         answer("wrong");
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault(); // don't scroll the page
+        answer("exclude");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -76,13 +96,17 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
     <div className="flex w-full flex-col items-center gap-6">
       <motion.div
         data-testid="flashcard"
-        className="relative aspect-[3/4] w-full max-w-sm touch-pan-y select-none perspective-distant"
-        style={{ x, rotate }}
-        drag={flipped ? "x" : false}
+        // a revealed card takes vertical drags too, so the page must not scroll under it
+        className={`relative aspect-[3/4] w-full max-w-sm select-none perspective-distant ${
+          flipped ? "touch-none" : "touch-pan-y"
+        }`}
+        style={{ x, y, rotate }}
+        drag={flipped}
+        dragDirectionLock
         dragSnapToOrigin
         dragElastic={0.9}
         onDragEnd={(_, info) => {
-          const a = swipeAnswer(info.offset.x, info.velocity.x);
+          const a = swipeAnswer(info.offset, info.velocity);
           if (a) answer(a);
         }}
       >
@@ -168,6 +192,13 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
         >
           MISSED
         </motion.span>
+        <motion.span
+          aria-hidden
+          style={{ opacity: excludeOpacity }}
+          className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 rounded-lg border-4 border-foreground px-3 py-1 text-2xl font-bold whitespace-nowrap text-foreground"
+        >
+          KNOWN
+        </motion.span>
       </motion.div>
 
       <div className="flex w-full max-w-sm justify-between gap-4">
@@ -188,6 +219,14 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
           ✓ Got it
         </button>
       </div>
+      <button
+        type="button"
+        disabled={!flipped}
+        onClick={() => answer("exclude")}
+        className="-mt-2 rounded-full px-4 py-1.5 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-30"
+      >
+        ↓ Know it, don&apos;t show again
+      </button>
     </div>
   );
 }

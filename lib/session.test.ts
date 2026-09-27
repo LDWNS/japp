@@ -123,6 +123,12 @@ describe("studyReducer", () => {
 describe("summarize", () => {
   it("counts results and lists wrong ids in order", () => {
     const s = run([start, flip, wrong, flip, right, { type: "end" }]).session!;
-    expect(summarize(s)).toEqual({ answered: 2, total: 3, right: 1, wrong: 1, wrongIds: ["a"] });
+    expect(summarize(s)).toEqual({ answered: 2, total: 3, right: 1, wrong: 1, excluded: 0, wrongIds: ["a"] });
+  });
+
+  it("counts excluded cards as right", () => {
+    const exclude: StudyAction = { type: "answer", answer: "exclude" };
+    const s = run([start, flip, wrong, flip, exclude, flip, right]).session!;
+    expect(summarize(s)).toMatchObject({ right: 2, wrong: 1, excluded: 1 });
   });
 });
