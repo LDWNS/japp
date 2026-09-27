@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense, use, useDeferredValue, useRef, useState, type KeyboardEvent } from "react";
 import { loadWords } from "@/lib/data";
 import { toggleExcluded, useStore } from "@/lib/store";
 import { LEVELS, type Level, type Word } from "@/lib/types";
+import { HomeLink } from "./HomeLink";
 import { Loading } from "./Loading";
 
 const matches = (w: Word, q: string) =>
@@ -33,6 +33,7 @@ export function WordLists() {
   return (
     <div className="flex flex-1 flex-col gap-4 py-4">
       <header>
+        <HomeLink />
         <h1 className="text-3xl font-bold">Word lists</h1>
         <p className="mt-1 text-muted-foreground">Untick a word to leave it out of quizzes</p>
       </header>
@@ -81,10 +82,6 @@ export function WordLists() {
           <Loading />
         )}
       </div>
-
-      <Link href="/" className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
-        Back
-      </Link>
     </div>
   );
 }

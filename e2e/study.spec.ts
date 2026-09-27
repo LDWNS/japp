@@ -8,7 +8,7 @@ test("welcome menu leads to the quiz and word lists", async ({ page }) => {
   await page.getByRole("tab", { name: "N4" }).click();
   await page.getByRole("searchbox", { name: "Search words" }).fill("driving");
   await expect(page.getByText("運転", { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Back" }).click();
+  await page.getByRole("link", { name: "‹ Home" }).click();
   await page.getByRole("link", { name: "Start quiz" }).click();
   await expect(page).toHaveURL(/\/quiz$/);
   await page.getByRole("button", { name: "Start" }).click();

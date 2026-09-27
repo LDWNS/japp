@@ -9,6 +9,7 @@ import type { Settings } from "@/lib/storage";
 import { dispatch, useStore } from "@/lib/store";
 import { LEVELS, type Answer } from "@/lib/types";
 import { FlashCard } from "./FlashCard";
+import { HomeLink } from "./HomeLink";
 import { Loading } from "./Loading";
 
 const levelsOf = (session: Session) => LEVELS.filter((l) => session.cards.some((c) => c.level === l));
@@ -31,6 +32,7 @@ export function Study() {
         <Link href="/quiz" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground">
           Choose cards
         </Link>
+        <HomeLink center />
       </div>
     );
   }

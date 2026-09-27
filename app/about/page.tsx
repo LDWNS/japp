@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HomeLink } from "@/components/HomeLink";
 
 export const metadata: Metadata = { title: "About · J-app" };
 
 export default function Page() {
   return (
     <article className="flex flex-1 flex-col gap-5 py-4">
-      <h1 className="text-3xl font-bold">About &amp; credits</h1>
+      <header>
+        <HomeLink />
+        <h1 className="text-3xl font-bold">About &amp; credits</h1>
+      </header>
       <p>
         Tap a card to reveal the answer, then swipe right if you knew it or left if you
         didn&apos;t. Missed cards go to a review pile and leave it after two correct answers in a
@@ -39,10 +42,6 @@ export default function Page() {
           </a>
           .
         </p>
-      </section>
-      <Link href="/" className="mt-auto rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
-        Back
-      </Link>
-    </article>
+      </section>    </article>
   );
 }
