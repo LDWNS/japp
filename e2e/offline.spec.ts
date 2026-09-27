@@ -18,6 +18,7 @@ test("works offline after the first visit", async ({ page, context, browserName 
   await context.setOffline(true);
 
   await page.reload();
+  await page.getByRole("link", { name: "Start quiz" }).click();
   await page.getByRole("button", { name: "N3", exact: true }).click();
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/study$/);
@@ -25,6 +26,10 @@ test("works offline after the first visit", async ({ page, context, browserName 
   await answerBySwipe(page, "right");
   await page.getByRole("button", { name: "End" }).click();
   await expect(page.getByRole("heading", { name: "Session ended" })).toBeVisible();
+
+  await page.goto("/words");
+  await page.getByRole("tab", { name: "N2" }).click();
+  await expect(page.getByText(/^\d+ words$/)).toBeVisible();
 
   await page.goto("/about");
   await expect(page.getByRole("heading", { name: "About & credits" })).toBeVisible();
