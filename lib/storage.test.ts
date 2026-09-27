@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { initialStudyState, studyReducer } from "./session";
-import { defaultStored, load, save, STORAGE_KEY, type Stored } from "./storage";
+import { defaultSettings, defaultStored, load, save, showsRomaji, STORAGE_KEY, type Stored } from "./storage";
 
 describe("storage", () => {
   it("returns defaults when nothing is stored", () => {
@@ -15,9 +15,24 @@ describe("storage", () => {
     });
     study = studyReducer(study, { type: "flip" });
     study = studyReducer(study, { type: "answer", answer: "wrong" });
-    const value: Stored = { study, settings: { levels: ["N5", "N3"], count: "all" } };
+    const value: Stored = {
+      study,
+      settings: { levels: ["N5", "N3"], count: "all", furigana: true, romaji: "back", excluded: ["b"] },
+    };
     save(value);
     expect(load()).toEqual(value);
+  });
+
+  it("keeps progress from data saved before display settings existed", () => {
+    const study = studyReducer(initialStudyState(), { type: "start", mode: "normal", cards: [{ id: "a", level: "N5" }] });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ study, settings: { levels: ["N4"], count: 50 } }));
+    expect(load()).toEqual({ study, settings: { ...defaultSettings(), levels: ["N4"], count: 50 } });
+  });
+
+  it("rejects unknown romaji modes", () => {
+    const bad = { ...defaultStored(), settings: { ...defaultSettings(), romaji: "sometimes" } };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bad));
+    expect(load()).toEqual(defaultStored());
   });
 
   it("falls back to defaults on corrupt JSON", () => {
@@ -42,5 +57,17 @@ describe("storage", () => {
     });
     expect(() => save(defaultStored())).not.toThrow();
     spy.mockRestore();
+  });
+});
+
+describe("showsRomaji", () => {
+  it.each([
+    ["off", false, false],
+    ["front", true, false],
+    ["back", false, true],
+    ["both", true, true],
+  ] as const)("%s → front %s, back %s", (mode, front, back) => {
+    expect(showsRomaji(mode, "front")).toBe(front);
+    expect(showsRomaji(mode, "back")).toBe(back);
   });
 });

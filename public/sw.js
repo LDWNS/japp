@@ -9,6 +9,7 @@ const PRECACHE = [
   "/study",
   "/summary",
   "/words",
+  "/settings",
   "/about",
   "/data/n5.json",
   "/data/n4.json",

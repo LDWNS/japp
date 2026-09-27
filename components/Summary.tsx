@@ -17,6 +17,7 @@ export function Summary() {
 
   if (!store) return <Loading />;
   const { session, progress } = store.study;
+  const { excluded } = store.settings;
   if (!session || !isDone(session)) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
@@ -32,7 +33,7 @@ export function Summary() {
   }
 
   const stats = summarize(session);
-  const pile = missedCount(progress);
+  const pile = missedCount(progress, excluded);
   const pct = stats.answered ? Math.round((100 * stats.right) / stats.answered) : 0;
 
   return (
@@ -67,7 +68,7 @@ export function Summary() {
           type="button"
           disabled={pile === 0}
           onClick={() => {
-            startReviewSession(progress);
+            startReviewSession(progress, excluded);
             router.push("/study");
           }}
           className="rounded-full bg-accent py-4 text-lg font-semibold text-accent-foreground disabled:opacity-40"

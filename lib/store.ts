@@ -48,6 +48,15 @@ export function updateSettings(settings: Settings) {
   set({ ...current(), settings });
 }
 
+/** Leave a word out of sessions, or put it back. */
+export function toggleExcluded(id: string) {
+  const { settings } = current();
+  const excluded = settings.excluded.includes(id)
+    ? settings.excluded.filter((e) => e !== id)
+    : [...settings.excluded, id];
+  updateSettings({ ...settings, excluded });
+}
+
 export function useStore(): Stored | null {
   return useSyncExternalStore(subscribe, current, () => null);
 }

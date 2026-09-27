@@ -2,10 +2,12 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { load } from "@/lib/storage";
-import { dispatch } from "@/lib/store";
+import { dispatch, updateSettings } from "@/lib/store";
+import { defaultSettings } from "@/lib/storage";
 import { mockWordFetch, renderAsync, resetApp } from "@/test/fixtures";
 import { Home } from "./Home";
 import { QuizSetup } from "./QuizSetup";
+import { Settings } from "./Settings";
 import { Study } from "./Study";
 import { Summary } from "./Summary";
 import { WordLists } from "./WordLists";
@@ -23,11 +25,11 @@ const startWith = (ids: [string, "N5" | "N4"][], mode: "normal" | "review" = "no
   act(() => dispatch({ type: "start", mode, cards: ids.map(([id, level]) => ({ id, level })) }));
 
 describe("Home", () => {
-  it("links to the quiz and word lists, settings not yet available", () => {
+  it("links to the quiz, word lists and settings", () => {
     render(<Home />);
     expect(screen.getByRole("link", { name: "Start quiz" })).toHaveAttribute("href", "/quiz");
     expect(screen.getByRole("link", { name: "Word lists" })).toHaveAttribute("href", "/words");
-    expect(screen.getByRole("button", { name: "Settings (soon)" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
     expect(screen.queryByRole("link", { name: /Resume/ })).not.toBeInTheDocument();
   });
 
@@ -72,6 +74,41 @@ describe("QuizSetup", () => {
     // 20 requested, fixture pool is 4 → clamped
     expect(session.cards.map((c) => c.id).sort()).toEqual(["a", "b", "c", "d"]);
     expect(session.mode).toBe("normal");
+  });
+
+  it("leaves excluded words out of the deck", async () => {
+    const user = userEvent.setup();
+    act(() => updateSettings({ ...defaultSettings(), excluded: ["a"] }));
+    render(<QuizSetup />);
+    await user.click(screen.getByRole("button", { name: "Start" }));
+    expect(router.push).toHaveBeenCalledWith("/study");
+    expect(load().study.session!.cards.map((c) => c.id).sort()).toEqual(["b", "c"]);
+  });
+
+  it("explains when every word is excluded", async () => {
+    const user = userEvent.setup();
+    act(() => updateSettings({ ...defaultSettings(), excluded: ["a", "b", "c"] }));
+    render(<QuizSetup />);
+    await user.click(screen.getByRole("button", { name: "Start" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/excluded/);
+    expect(router.push).not.toHaveBeenCalled();
+    expect(load().study.session).toBeNull();
+  });
+
+  it("skips excluded words when reviewing the pile", async () => {
+    const user = userEvent.setup();
+    startWith([["a", "N5"], ["b", "N5"]]);
+    act(() => {
+      for (let i = 0; i < 2; i++) {
+        dispatch({ type: "flip" });
+        dispatch({ type: "answer", answer: "wrong" });
+      }
+      updateSettings({ ...defaultSettings(), excluded: ["a"] });
+    });
+    render(<QuizSetup />);
+    await user.click(screen.getByRole("button", { name: "Review missed (1)" }));
+    expect(load().study.session!.cards).toEqual([{ id: "b", level: "N5" }]);
+    expect(Object.keys(load().study.progress.missed).sort()).toEqual(["a", "b"]);
   });
 
   it("shows an error when word lists fail to load", async () => {
@@ -164,6 +201,14 @@ describe("Study", () => {
     expect(load().study.session!.endedEarly).toBe(true);
   });
 
+  it("applies furigana and romaji settings to the card", async () => {
+    act(() => updateSettings({ ...defaultSettings(), furigana: true, romaji: "front" }));
+    startWith([["a", "N5"]]);
+    await renderAsync(<Study />);
+    expect((await screen.findByText("みず")).tagName).toBe("RT");
+    expect(screen.getByTestId("romaji-front")).toHaveTextContent("mizu");
+  });
+
   it("marks review sessions", async () => {
     startWith([["a", "N5"]], "review");
     await renderAsync(<Study />);
@@ -241,5 +286,46 @@ describe("WordLists", () => {
     await user.clear(search);
     await user.type(search, "zzz");
     expect(await screen.findByText("No matches.")).toBeInTheDocument();
+  });
+
+  it("unticking a word excludes it, ticking puts it back", async () => {
+    const user = userEvent.setup();
+    await renderAsync(<WordLists />);
+    const box = screen.getByRole("checkbox", { name: "Include 山 in quizzes" });
+    expect(box).toBeChecked();
+    await user.click(box);
+    expect(box).not.toBeChecked();
+    expect(load().settings.excluded).toEqual(["b"]);
+    expect(screen.getByText("3 words · 1 excluded")).toBeInTheDocument();
+    await user.click(box);
+    expect(load().settings.excluded).toEqual([]);
+  });
+});
+
+describe("Settings", () => {
+  it("toggles furigana and picks a romaji mode", async () => {
+    const user = userEvent.setup();
+    render(<Settings />);
+    const furigana = screen.getByRole("switch", { name: "Furigana" });
+    expect(furigana).toHaveAttribute("aria-checked", "false");
+    await user.click(furigana);
+    expect(furigana).toHaveAttribute("aria-checked", "true");
+    expect(load().settings.furigana).toBe(true);
+
+    const romaji = screen.getByRole("combobox", { name: "Romaji" });
+    expect(romaji).toHaveValue("off");
+    await user.selectOptions(romaji, "Back of card");
+    expect(load().settings.romaji).toBe("back");
+  });
+
+  it("shows the excluded count and includes everything again", async () => {
+    const user = userEvent.setup();
+    act(() => updateSettings({ ...defaultSettings(), excluded: ["a", "b"] }));
+    render(<Settings />);
+    expect(screen.getByText(/2 words are left out/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Edit in word lists" })).toHaveAttribute("href", "/words");
+    await user.click(screen.getByRole("button", { name: "Include all" }));
+    expect(load().settings.excluded).toEqual([]);
+    expect(screen.getByRole("button", { name: "Include all" })).toBeDisabled();
   });
 });

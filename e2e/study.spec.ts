@@ -3,7 +3,6 @@ import { answerBySwipe, counter, startSession, swipe } from "./helpers";
 
 test("welcome menu leads to the quiz and word lists", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Settings (soon)" })).toBeDisabled();
   await page.getByRole("link", { name: "Word lists" }).click();
   await expect(page).toHaveURL(/\/words$/);
   await page.getByRole("tab", { name: "N4" }).click();
@@ -14,6 +13,32 @@ test("welcome menu leads to the quiz and word lists", async ({ page }) => {
   await expect(page).toHaveURL(/\/quiz$/);
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByTestId("flashcard")).toBeVisible();
+});
+
+test("display settings persist and show on the card", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Settings" }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await page.getByRole("switch", { name: "Furigana" }).click();
+  await page.getByRole("combobox", { name: "Romaji" }).selectOption("both");
+  await page.reload();
+  await expect(page.getByRole("switch", { name: "Furigana" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("combobox", { name: "Romaji" })).toHaveValue("both");
+
+  await startSession(page);
+  await expect(page.getByTestId("romaji-front")).toHaveText(/^[a-z~' ();,.-]+$/);
+  await page.getByRole("button", { name: "Show answer" }).click();
+  await expect(page.getByTestId("romaji")).toBeVisible();
+});
+
+test("words unticked in the word list are left out of the quiz", async ({ page }) => {
+  await page.goto("/words");
+  const summary = page.getByText(/^\d+ words/);
+  const total = Number((await summary.textContent())!.split(" ")[0]);
+  await page.getByRole("checkbox").first().uncheck();
+  await expect(page.getByText(`${total} words · 1 excluded`)).toBeVisible();
+  await startSession(page, { count: "All" });
+  await expect(page.getByText(`1 / ${total - 1}`)).toBeVisible();
 });
 
 test("full session by swipe, then review the missed pile until it clears", async ({ page }) => {

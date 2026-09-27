@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Suspense, use, useCallback, useEffect } from "react";
 import { loadWords } from "@/lib/data";
 import { canUndo, currentCard, isDone, type Session } from "@/lib/session";
+import type { Settings } from "@/lib/storage";
 import { dispatch, useStore } from "@/lib/store";
 import { LEVELS, type Answer } from "@/lib/types";
 import { FlashCard } from "./FlashCard";
@@ -37,12 +38,12 @@ export function Study() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <StudyDeck session={session} />
+      <StudyDeck session={session} settings={store.settings} />
     </Suspense>
   );
 }
 
-function StudyDeck({ session }: { session: Session }) {
+function StudyDeck({ session, settings }: { session: Session; settings: Settings }) {
   const words = use(loadWords(levelsOf(session)));
   const card = currentCard(session);
   const word = card ? words.get(card.id) : undefined;
@@ -111,6 +112,8 @@ function StudyDeck({ session }: { session: Session }) {
             flipped={session.flipped}
             onFlip={onFlip}
             onAnswer={onAnswer}
+            furigana={settings.furigana}
+            romaji={settings.romaji}
           />
         ) : (
           <MissingCard flipped={session.flipped} />
