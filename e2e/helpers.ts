@@ -26,6 +26,28 @@ export async function swipe(
   await page.mouse.up();
 }
 
+/**
+ * Drag the card with real touch events (Chromium only, via CDP). Mouse drags
+ * ignore touch-action, so only this catches the browser stealing a touch
+ * gesture for scrolling.
+ */
+export async function touchSwipe(page: Page, direction: Direction, distance = 220) {
+  const cdp = await page.context().newCDPSession(page);
+  const box = (await page.getByTestId("flashcard").boundingBox())!;
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const dx = direction === "down" ? 0 : direction === "right" ? distance : -distance;
+  const dy = direction === "down" ? distance : 10;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  for (let i = 1; i <= 10; i++) {
+    const point = { x: x + (dx * i) / 10, y: y + (dy * i) / 10 };
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [point] });
+    await page.waitForTimeout(16);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await cdp.detach();
+}
+
 export async function counter(page: Page) {
   return page.getByText(/^\d+ \/ \d+$/).textContent();
 }

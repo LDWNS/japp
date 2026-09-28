@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { answerBySwipe, counter, startSession, swipe } from "./helpers";
+import { answerBySwipe, counter, startSession, swipe, touchSwipe } from "./helpers";
 
 test("welcome menu leads to the quiz and word lists", async ({ page }) => {
   await page.goto("/");
@@ -52,6 +52,19 @@ test("swiping down excludes a known word from the quiz", async ({ page }) => {
   await page.goto("/words");
   await expect(page.getByText(/· 1 excluded/)).toBeVisible();
   await expect(page.getByRole("checkbox", { name: `Include ${word} in quizzes` })).not.toBeChecked();
+});
+
+test("touch swipes answer a revealed card", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-chrome", "touch events are sent via Chromium CDP");
+  await startSession(page);
+  for (const [direction, next] of [["right", "2 / 10"], ["left", "3 / 10"], ["down", "4 / 10"]] as const) {
+    await page.getByRole("button", { name: "Show answer" }).click();
+    await expect(page.getByRole("button", { name: /Got it/ })).toBeEnabled();
+    // let the 300ms flip finish so the touch lands on the back face
+    await page.waitForTimeout(400);
+    await touchSwipe(page, direction);
+    await expect(page.getByText(next)).toBeVisible();
+  }
 });
 
 test("full session by swipe, then review the missed pile until it clears", async ({ page }) => {

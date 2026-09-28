@@ -138,11 +138,12 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
             <span className="absolute bottom-5 text-sm text-muted-foreground">Tap to reveal</span>
           </button>
 
-          {/* back */}
+          {/* back: a scroll container resets touch-action, so it needs touch-none
+              itself or the browser claims drags as scrolls and cancels the swipe */}
           <div
             aria-hidden={!flipped}
             aria-live="polite"
-            className="absolute inset-0 flex rotate-y-180 flex-col gap-4 overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-lg backface-hidden"
+            className="absolute inset-0 flex rotate-y-180 touch-none flex-col gap-4 overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-lg backface-hidden"
           >
             {flipped && (
               <>
