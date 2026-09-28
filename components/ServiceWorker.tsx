@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { BASE_PATH } from "@/lib/basePath";
 
 /** Must match CACHE in public/sw.js. */
 const CACHE = "japp-v1";
@@ -18,7 +19,7 @@ async function cacheLoadedAssets() {
   const urls = performance
     .getEntriesByType("resource")
     .map((e) => new URL(e.name))
-    .filter((u) => u.origin === location.origin && u.pathname.startsWith("/_next/static/"))
+    .filter((u) => u.origin === location.origin && u.pathname.startsWith(`${BASE_PATH}/_next/static/`))
     .map((u) => u.href);
   const cache = await caches.open(CACHE);
   await Promise.all(
@@ -33,7 +34,7 @@ export function ServiceWorker() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
     navigator.serviceWorker
-      .register("/sw.js")
+      .register(`${BASE_PATH}/sw.js`)
       .then(() => navigator.serviceWorker.ready)
       .then(cacheLoadedAssets)
       .then(() => OFFLINE_ROUTES.forEach((r) => router.prefetch(r)))
