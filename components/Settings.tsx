@@ -44,13 +44,13 @@ export function Settings() {
             aria-checked={settings.furigana}
             aria-labelledby="furigana-label"
             onClick={() => updateSettings({ ...settings, furigana: !settings.furigana })}
-            className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+            className={`relative h-7 w-12 shrink-0 rounded-xs transition ${
               settings.furigana ? "bg-accent" : "bg-muted"
             }`}
           >
             <span
               aria-hidden
-              className={`absolute top-1 left-1 size-5 rounded-full bg-card shadow transition-transform ${
+              className={`absolute top-1 left-1 size-5 rounded-xs bg-card shadow transition-transform ${
                 settings.furigana ? "translate-x-5" : ""
               }`}
             />
@@ -89,14 +89,14 @@ export function Settings() {
               : `${excluded} ${excluded === 1 ? "word is" : "words are"} left out of quizzes and review.`}
           </p>
           <div className="flex gap-2">
-            <Link href="/words" className="flex-1 rounded-full border-2 border-foreground py-2.5 text-center font-semibold">
+            <Link href="/words" className="flex-1 rounded-xs border-2 border-foreground py-2.5 text-center font-semibold">
               Edit in word lists
             </Link>
             <button
               type="button"
               disabled={excluded === 0}
               onClick={() => updateSettings({ ...settings, excluded: [] })}
-              className="flex-1 rounded-full border-2 border-border py-2.5 font-semibold transition disabled:text-muted-foreground disabled:opacity-60"
+              className="flex-1 rounded-xs border-2 border-border py-2.5 font-semibold transition disabled:text-muted-foreground disabled:opacity-60"
             >
               Include all
             </button>

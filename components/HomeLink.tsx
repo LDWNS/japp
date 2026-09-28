@@ -5,7 +5,7 @@ export function HomeLink({ center = false }: { center?: boolean }) {
   return (
     <Link
       href="/"
-      className={`rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground hover:bg-muted ${
+      className={`rounded-xs px-2 py-1 text-sm font-semibold text-muted-foreground hover:bg-muted ${
         center ? "self-center" : "-ml-2 self-start"
       }`}
     >

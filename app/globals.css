@@ -7,10 +7,10 @@
   --border: #e7e2da;
   --muted: #f3efe9;
   --muted-foreground: #6b645c;
-  --accent: #b4232c;
+  --accent: #232cb4;
   --accent-foreground: #ffffff;
   --good: #15803d;
-  --bad: #c2410c;
+  --bad: #b4232c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,10 +21,10 @@
     --border: #36312b;
     --muted: #2a2622;
     --muted-foreground: #a8a097;
-    --accent: #e0525b;
+    --accent: #525be0;
     --accent-foreground: #141210;
     --good: #4ade80;
-    --bad: #fb923c;
+    --bad: #e0525b;
   }
 }
 

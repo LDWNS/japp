@@ -29,7 +29,7 @@ export function Study() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <p>No active session.</p>
-        <Link href="/quiz" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground">
+        <Link href="/quiz" className="rounded-xs bg-accent px-6 py-3 font-semibold text-accent-foreground">
           Choose cards
         </Link>
         <HomeLink center />
@@ -72,7 +72,7 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
         <button
           type="button"
           onClick={() => dispatch({ type: "end" })}
-          className="rounded-full px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
+          className="rounded-xs px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
         >
           End
         </button>
@@ -86,14 +86,14 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
           type="button"
           onClick={() => dispatch({ type: "undo" })}
           disabled={!undoable}
-          className="rounded-full px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-30"
+          className="rounded-xs px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-30"
         >
           ↶ Undo
         </button>
       </header>
 
       <div
-        className="h-1 overflow-hidden rounded-full bg-muted"
+        className="h-1 overflow-y-hidden rounded-xs bg-muted"
         role="progressbar"
         aria-label="Session progress"
         aria-valuemin={0}
@@ -106,7 +106,7 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
         />
       </div>
 
-      <div className="flex flex-1 items-center justify-center overflow-x-clip">
+      <div className="flex flex-1 items-center justify-center overflow">
         {word ? (
           <FlashCard
             key={session.index}
@@ -140,7 +140,7 @@ function MissingCard({ flipped }: { flipped: boolean }) {
           if (!flipped) dispatch({ type: "flip" });
           dispatch({ type: "answer", answer: "right" });
         }}
-        className="rounded-full border-2 border-border px-6 py-2 font-semibold"
+        className="rounded-xs border-2 border-border px-6 py-2 font-semibold"
       >
         Skip
       </button>

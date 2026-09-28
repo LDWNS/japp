@@ -25,7 +25,7 @@ export function Summary() {
         <p>{session ? "Session still in progress." : "No finished session yet."}</p>
         <Link
           href={session ? "/study" : "/quiz"}
-          className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground"
+          className="rounded-xs bg-accent px-6 py-3 font-semibold text-accent-foreground"
         >
           {session ? "Back to cards" : "Choose cards"}
         </Link>
@@ -79,11 +79,11 @@ export function Summary() {
             startReviewSession(progress, excluded);
             router.push("/study");
           }}
-          className="rounded-full bg-accent py-4 text-lg font-semibold text-accent-foreground disabled:opacity-40"
+          className="rounded-xs bg-accent py-4 text-lg font-semibold text-accent-foreground disabled:opacity-40"
         >
           Practice missed ({pile})
         </button>
-        <Link href="/quiz" className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold">
+        <Link href="/quiz" className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold">
           New session
         </Link>
       </div>

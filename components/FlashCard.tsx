@@ -1,6 +1,12 @@
 "use client";
 
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { furigana as toFurigana } from "@/lib/furigana";
 import { toRomaji } from "@/lib/romaji";
@@ -17,11 +23,13 @@ export const SWIPE_VELOCITY = 500;
  */
 export function swipeAnswer(
   offset: { x: number; y: number },
-  velocity: { x: number; y: number },
+  velocity: { x: number; y: number }
 ): Answer | null {
   const vertical = Math.abs(offset.y) > Math.abs(offset.x);
   if (vertical) {
-    return offset.y > SWIPE_OFFSET || velocity.y > SWIPE_VELOCITY ? "exclude" : null;
+    return offset.y > SWIPE_OFFSET || velocity.y > SWIPE_VELOCITY
+      ? "exclude"
+      : null;
   }
   if (offset.x > SWIPE_OFFSET || velocity.x > SWIPE_VELOCITY) return "right";
   if (offset.x < -SWIPE_OFFSET || velocity.x < -SWIPE_VELOCITY) return "wrong";
@@ -38,13 +46,38 @@ type Props = {
   romaji?: RomajiMode;
 };
 
-export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, romaji = "off" }: Props) {
+export function FlashCard({
+  word,
+  flipped,
+  onFlip,
+  onAnswer,
+  furigana = false,
+  romaji = "off",
+}: Props) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-250, 250], [-12, 12]);
   const rightOpacity = useTransform(x, [0, SWIPE_OFFSET], [0, 1]);
   const wrongOpacity = useTransform(x, [-SWIPE_OFFSET, 0], [1, 0]);
   const excludeOpacity = useTransform(y, [0, SWIPE_OFFSET], [0, 1]);
+  const { background: lRbackground, offset: lRoffset, opacity: lROpacity } = useTransform(
+    x,
+    [-SWIPE_OFFSET / 5, 0, SWIPE_OFFSET / 5],
+    {
+      background: ["var(--bad)", "transparent", "var(--good)"],
+      opacity: [0.3, 0, 0.3],
+      offset: ["0", "75%", "100%"],
+    }
+  );
+  const { background: tDbackground, offset: tDoffset, opacity: tDOpacity } = useTransform(
+    y,
+    [-SWIPE_OFFSET / 5, 0, SWIPE_OFFSET / 5],
+    {
+      background: ["transparent", "transparent", "var(--accent)"],
+      opacity: [0.3, 0, 0.3],
+      offset: ["0", "75%", "75%"],
+    }
+  );
   const reduceMotion = useReducedMotion();
   const leaving = useRef(false);
 
@@ -61,10 +94,14 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
       if (a === "exclude") {
         animate(y, window.innerHeight + 200, exit).then(done);
       } else {
-        animate(x, (a === "right" ? 1 : -1) * (window.innerWidth + 200), exit).then(done);
+        animate(
+          x,
+          (a === "right" ? 1 : -1) * (window.innerWidth + 200),
+          exit
+        ).then(done);
       }
     },
-    [flipped, onAnswer, reduceMotion, x, y],
+    [flipped, onAnswer, reduceMotion, x, y]
   );
 
   useEffect(() => {
@@ -93,11 +130,11 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
   const romajiText = romaji === "off" ? "" : toRomaji(word.reading);
 
   return (
-    <div className="flex w-full flex-col items-center gap-6">
+    <div className="flex w-full flex-col items-center gap-6 relative">
       <motion.div
         data-testid="flashcard"
         // a revealed card takes vertical drags too, so the page must not scroll under it
-        className={`relative aspect-[3/4] w-full max-w-sm select-none perspective-distant ${
+        className={`relative aspect-3/4 w-full max-w-sm select-none perspective-distant z-10 ${
           flipped ? "touch-none" : "touch-pan-y"
         }`}
         style={{ x, y, rotate }}
@@ -124,18 +161,26 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
             tabIndex={flipped ? -1 : 0}
             className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-3xl border border-border bg-card p-6 shadow-lg backface-hidden"
           >
-            <span className="absolute top-4 left-4 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+            <span className="absolute top-4 left-4 rounded-xs bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
               {word.level}
             </span>
-            <span lang="ja" className="text-center text-6xl leading-tight font-medium break-keep">
+            <span
+              lang="ja"
+              className="text-center text-6xl leading-tight font-medium break-keep"
+            >
               {furigana ? <Furigana word={word} /> : word.expression}
             </span>
             {showsRomaji(romaji, "front") && (
-              <span data-testid="romaji-front" className="text-center text-lg text-muted-foreground">
+              <span
+                data-testid="romaji-front"
+                className="text-center text-lg text-muted-foreground"
+              >
                 {romajiText}
               </span>
             )}
-            <span className="absolute bottom-5 text-sm text-muted-foreground">Tap to reveal</span>
+            <span className="absolute bottom-5 text-sm text-muted-foreground">
+              Tap to reveal
+            </span>
           </button>
 
           {/* back: a scroll container resets touch-action, so it needs touch-none
@@ -143,7 +188,7 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
           <div
             aria-hidden={!flipped}
             aria-live="polite"
-            className="absolute inset-0 flex rotate-y-180 touch-none flex-col gap-4 overflow-y-auto rounded-3xl border border-border bg-card p-6 shadow-lg backface-hidden"
+            className="absolute inset-0 flex rotate-y-180 touch-none flex-col gap-4 overflow-y-auto rounded-3xl border border-border bg-card p-6 pt-20 shadow-lg backface-hidden"
           >
             {flipped && (
               <>
@@ -152,26 +197,39 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
                     {word.expression}
                   </p>
                   {showReading && (
-                    <p lang="ja" data-testid="reading" className="mt-1 text-2xl text-muted-foreground">
+                    <p
+                      lang="ja"
+                      data-testid="reading"
+                      className="mt-1 text-2xl text-muted-foreground"
+                    >
                       {word.reading}
                     </p>
                   )}
                   {showsRomaji(romaji, "back") && (
-                    <p data-testid="romaji" className="mt-1 text-muted-foreground">
+                    <p
+                      data-testid="romaji"
+                      className="mt-1 text-muted-foreground"
+                    >
                       {romajiText}
                     </p>
                   )}
                 </div>
                 <p className="text-center text-lg">
                   <strong>{primary}</strong>
-                  {rest.length > 0 && <span className="text-muted-foreground">, {rest.join(", ")}</span>}
+                  {rest.length > 0 && (
+                    <span className="text-muted-foreground">
+                      , {rest.join(", ")}
+                    </span>
+                  )}
                 </p>
                 {word.example && (
                   <div className="mt-auto rounded-2xl bg-muted p-4">
                     <p lang="ja" className="text-lg">
                       {word.example.ja}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">{word.example.en}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {word.example.en}
+                    </p>
                   </div>
                 )}
               </>
@@ -196,18 +254,26 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
         <motion.span
           aria-hidden
           style={{ opacity: excludeOpacity }}
-          className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 rounded-lg border-4 border-foreground px-3 py-1 text-2xl font-bold whitespace-nowrap text-foreground"
+          className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 rounded-lg border-4 border-accent px-3 py-1 text-2xl font-bold whitespace-nowrap text-accent"
         >
           KNOWN
         </motion.span>
       </motion.div>
+      <motion.div
+        className="absolute bottom-1/5 blur-3xl rounded-full w-full h-auto aspect-square z-0 -translate-x-1/2"
+        style={{ background: lRbackground, opacity: lROpacity, left: lRoffset }}
+      ></motion.div>
+      <motion.div
+        className="absolute blur-3xl rounded-full w-full h-auto aspect-square z-0"
+        style={{ background: tDbackground, opacity: tDOpacity, top: tDoffset }}
+      ></motion.div>
 
       <div className="flex w-full max-w-sm justify-between gap-4">
         <button
           type="button"
           disabled={!flipped}
           onClick={() => answer("wrong")}
-          className="flex-1 rounded-full border-2 border-bad py-3 font-semibold text-bad transition disabled:opacity-30"
+          className="flex-1 relative z-10 rounded-xs border-2 border-bad py-3 font-semibold text-bad transition bg-background disabled:opacity-30"
         >
           ✗ Missed
         </button>
@@ -215,7 +281,7 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
           type="button"
           disabled={!flipped}
           onClick={() => answer("right")}
-          className="flex-1 rounded-full border-2 border-good py-3 font-semibold text-good transition disabled:opacity-30"
+          className="flex-1 rounded-xs relative z-10 border-2 border-good py-3 font-semibold text-good bg-background transition disabled:opacity-30"
         >
           ✓ Got it
         </button>
@@ -224,7 +290,7 @@ export function FlashCard({ word, flipped, onFlip, onAnswer, furigana = false, r
         type="button"
         disabled={!flipped}
         onClick={() => answer("exclude")}
-        className="-mt-2 rounded-full px-4 py-1.5 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-30"
+        className="-mt-2 rounded-xs px-4 py-1.5 relative z-10 text-sm text-muted-foreground bg-background transition hover:bg-muted disabled:opacity-30"
       >
         ↓ Know it, don&apos;t show again
       </button>
@@ -238,11 +304,13 @@ function Furigana({ word }: { word: Word }) {
       <ruby key={i}>
         {seg.text}
         <rp>(</rp>
-        <rt className="text-[0.4em] font-normal text-muted-foreground">{seg.ruby}</rt>
+        <rt className="text-[0.4em] font-normal text-muted-foreground">
+          {seg.ruby}
+        </rt>
         <rp>)</rp>
       </ruby>
     ) : (
       seg.text
-    ),
+    )
   );
 }

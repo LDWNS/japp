@@ -119,7 +119,7 @@ export function QuizSetup() {
           type="button"
           onClick={start}
           disabled={starting}
-          className="rounded-full bg-accent py-4 text-lg font-semibold text-accent-foreground transition disabled:opacity-60"
+          className="rounded-xs bg-accent py-4 text-lg font-semibold text-accent-foreground transition disabled:opacity-60"
         >
           {starting ? "Loading…" : "Start"}
         </button>
@@ -127,7 +127,7 @@ export function QuizSetup() {
           type="button"
           onClick={review}
           disabled={missed === 0}
-          className="rounded-full border-2 border-bad py-3.5 font-semibold text-bad transition disabled:border-border disabled:text-muted-foreground"
+          className="rounded-xs border-2 border-bad py-3.5 font-semibold text-bad transition disabled:border-border disabled:text-muted-foreground"
         >
           Review missed ({missed})
         </button>

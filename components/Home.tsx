@@ -25,26 +25,26 @@ export function Home() {
         {resumable && (
           <Link
             href="/study"
-            className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold"
+            className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold"
           >
             Resume session ({resumable.index}/{resumable.cards.length})
           </Link>
         )}
         <Link
           href="/quiz"
-          className="rounded-full bg-accent py-4 text-center text-lg font-semibold text-accent-foreground"
+          className="rounded-xs bg-accent py-4 text-center text-lg font-semibold text-accent-foreground"
         >
           Start quiz
         </Link>
         <Link
           href="/words"
-          className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold"
+          className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold"
         >
           Word lists
         </Link>
         <Link
           href="/settings"
-          className="rounded-full border-2 border-foreground py-3.5 text-center font-semibold"
+          className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold"
         >
           Settings
         </Link>

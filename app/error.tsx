@@ -7,7 +7,7 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
       <button
         type="button"
         onClick={reset}
-        className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground"
+        className="rounded-xs bg-accent px-6 py-3 font-semibold text-accent-foreground"
       >
         Retry
       </button>
