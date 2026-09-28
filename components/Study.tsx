@@ -81,6 +81,7 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
             {session.index + 1} / {session.cards.length}
           </p>
           {session.mode === "review" && <p className="text-xs text-bad">Reviewing missed</p>}
+          {session.mode === "history" && <p className="text-xs text-muted-foreground">From history</p>}
         </div>
         <button
           type="button"

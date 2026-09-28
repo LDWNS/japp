@@ -18,6 +18,9 @@ describe("storage", () => {
     const value: Stored = {
       study,
       settings: { levels: ["N5", "N3"], count: "all", furigana: true, romaji: "back", excluded: ["b"] },
+      history: [
+        { finishedAt: "2026-09-28T10:00:00.000Z", mode: "normal", cards: [{ id: "a", level: "N5" }], wrongIds: ["a"], endedEarly: false },
+      ],
     };
     save(value);
     expect(load()).toEqual(value);
@@ -26,7 +29,7 @@ describe("storage", () => {
   it("keeps progress from data saved before display settings existed", () => {
     const study = studyReducer(initialStudyState(), { type: "start", mode: "normal", cards: [{ id: "a", level: "N5" }] });
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ study, settings: { levels: ["N4"], count: 50 } }));
-    expect(load()).toEqual({ study, settings: { ...defaultSettings(), levels: ["N4"], count: 50 } });
+    expect(load()).toEqual({ study, settings: { ...defaultSettings(), levels: ["N4"], count: 50 }, history: [] });
   });
 
   it("rejects unknown romaji modes", () => {

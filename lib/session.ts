@@ -14,7 +14,8 @@ export const ResultSchema = z.object({
 export type Result = z.infer<typeof ResultSchema>;
 
 export const SessionSchema = z.object({
-  mode: z.enum(["normal", "review"]),
+  /** "history" replays cards picked on the history page */
+  mode: z.enum(["normal", "review", "history"]),
   cards: z.array(CardRefSchema),
   index: z.number().int().min(0),
   flipped: z.boolean(),

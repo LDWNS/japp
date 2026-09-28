@@ -46,6 +46,7 @@ export function Summary() {
         <p className="mt-1 text-muted-foreground">
           {stats.answered} of {stats.total} cards answered
           {session.mode === "review" && " · review"}
+          {session.mode === "history" && " · from history"}
         </p>
         {stats.excluded > 0 && (
           <p className="text-sm text-muted-foreground">
