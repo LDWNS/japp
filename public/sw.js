@@ -3,22 +3,24 @@
 // - /_next/static: cache first (content-hashed, immutable)
 // - everything else (word lists, RSC payloads, icons): stale-while-revalidate
 const CACHE = "japp-v1";
+// Directory the worker is served from: "/" locally, "/japp/" on GitHub Pages.
+const BASE = new URL("./", self.location).pathname;
 const PRECACHE = [
-  "/",
-  "/quiz",
-  "/study",
-  "/summary",
-  "/words",
-  "/settings",
-  "/about",
-  "/data/n5.json",
-  "/data/n4.json",
-  "/data/n3.json",
-  "/data/n2.json",
-  "/manifest.webmanifest",
-  "/icon-192.png",
-  "/icon-512.png",
-];
+  "",
+  "quiz",
+  "study",
+  "summary",
+  "words",
+  "settings",
+  "about",
+  "data/n5.json",
+  "data/n4.json",
+  "data/n3.json",
+  "data/n2.json",
+  "manifest.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+].map((path) => BASE + path);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -47,7 +49,7 @@ async function networkFirst(request) {
   } catch {
     return (
       (await cache.match(request, { ignoreSearch: true })) ||
-      (await cache.match("/")) ||
+      (await cache.match(BASE)) ||
       Response.error()
     );
   }
@@ -81,7 +83,7 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
-  } else if (url.pathname.startsWith("/_next/static/")) {
+  } else if (url.pathname.startsWith(`${BASE}_next/static/`)) {
     event.respondWith(cacheFirst(request));
   } else {
     event.respondWith(staleWhileRevalidate(request));

@@ -26,3 +26,10 @@ pnpm data:build   # regenerate public/data/*.json (downloads into .data-cache/)
 [tanos.co.uk](http://www.tanos.co.uk/jlpt/), CC BY) with example sentences from
 [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR) via its `jpn_indices` headword index.
 Output is committed. Example coverage: N5 96%, N4 96%, N3 93%, N2 78%.
+
+## Deploy
+
+Pushes to `main` deploy to GitHub Pages via `.github/workflows/deploy.yml` (lint, typecheck,
+unit tests, then build). The workflow sets `PAGES_BASE_PATH` (e.g. `/japp`) so the export works
+under the repo sub-path; unset locally. One-time setup: repo Settings → Pages → Source:
+**GitHub Actions**.

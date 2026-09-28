@@ -1,9 +1,10 @@
+import { BASE_PATH } from "./basePath";
 import { LEVELS, WordListSchema, type Level, type Word } from "./types";
 
 const levelCache = new Map<Level, Promise<Word[]>>();
 const setCache = new Map<string, Promise<Map<string, Word>>>();
 
-export const dataUrl = (level: Level) => `/data/${level.toLowerCase()}.json`;
+export const dataUrl = (level: Level) => `${BASE_PATH}/data/${level.toLowerCase()}.json`;
 
 function loadLevel(level: Level): Promise<Word[]> {
   let p = levelCache.get(level);
