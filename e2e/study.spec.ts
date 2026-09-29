@@ -162,3 +162,22 @@ test("renders Japanese text with the bundled font", async ({ page }) => {
     .evaluate((el) => getComputedStyle(el).fontFamily);
   expect(family).toMatch(/Noto Sans JP/i);
 });
+
+test("finished quizzes show in history and can be practiced again", async ({ page }) => {
+  await startSession(page, { count: "10" });
+  await answerBySwipe(page, "left");
+  await page.getByRole("button", { name: "End" }).click();
+  await expect(page).toHaveURL(/\/summary$/);
+
+  await page.goto("/");
+  await page.getByRole("link", { name: "History" }).click();
+  await expect(page).toHaveURL(/\/history$/);
+  const today = page.getByRole("region", { name: "Today" });
+  await expect(today.getByText(/1 card · 1 missed · 0% · ended early/)).toBeVisible();
+  await today.getByRole("checkbox").check();
+  await page.getByRole("radio", { name: "Missed only (1)" }).click();
+  await page.getByRole("button", { name: "Practice selected (1)" }).click();
+  await expect(page).toHaveURL(/\/study$/);
+  await expect(page.getByText("1 / 1")).toBeVisible();
+  await expect(page.getByText("From history")).toBeVisible();
+});

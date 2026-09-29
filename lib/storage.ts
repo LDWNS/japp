@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { COUNT_OPTIONS, type DeckCount } from "./deck";
+import { HistorySchema, type History } from "./history";
 import { initialStudyState, StudyStateSchema, type StudyState } from "./session";
 import { LEVELS, LevelSchema, type Level } from "./types";
 
@@ -38,10 +39,16 @@ export const showsRomaji = (mode: RomajiMode, side: "front" | "back") => mode ==
 const StoredSchema = z.object({
   study: StudyStateSchema,
   settings: SettingsSchema,
+  /** finished quizzes, oldest first */
+  history: HistorySchema.default(() => []),
 });
-export type Stored = { study: StudyState; settings: Settings };
+export type Stored = { study: StudyState; settings: Settings; history: History };
 
-export const defaultStored = (): Stored => ({ study: initialStudyState(), settings: defaultSettings() });
+export const defaultStored = (): Stored => ({
+  study: initialStudyState(),
+  settings: defaultSettings(),
+  history: [],
+});
 
 function storage(): Storage | null {
   try {

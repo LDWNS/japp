@@ -1,7 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { studyReducer, type StudyAction, type StudyState } from "./session";
+import { addRecord, recordOf } from "./history";
+import { isDone, studyReducer, type StudyAction, type StudyState } from "./session";
 import { load, save, STORAGE_KEY, type Settings, type Stored } from "./storage";
 
 /**
@@ -59,7 +60,12 @@ export function dispatch(action: StudyAction) {
   } else if (change?.remove) {
     settings = { ...settings, excluded: settings.excluded.filter((e) => e !== change.remove) };
   }
-  set({ study, settings });
+  let { history } = prev;
+  // a session that just finished (or was ended) goes into the history
+  const finished = study.session && isDone(study.session) && !(prev.study.session && isDone(prev.study.session));
+  const record = finished && study.session ? recordOf(study.session, new Date()) : null;
+  if (record) history = addRecord(history, record);
+  set({ study, settings, history });
 }
 
 export function updateSettings(settings: Settings) {

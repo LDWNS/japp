@@ -2,6 +2,7 @@
 
 import { loadWords } from "./data";
 import { buildDeck, shuffle, type Rng } from "./deck";
+import { shuffledCombined, type Pick, type QuizRecord } from "./history";
 import { pileCards, type Progress } from "./progress";
 import type { Settings } from "./storage";
 import { dispatch } from "./store";
@@ -27,4 +28,15 @@ export async function startNormalSession(settings: Settings, rng: Rng = Math.ran
 /** Whole missed pile minus excluded words, shuffled. */
 export function startReviewSession(progress: Progress, excluded: readonly string[], rng: Rng = Math.random) {
   dispatch({ type: "start", mode: "review", cards: shuffle(pileCards(progress, excluded), rng) });
+}
+
+/** Cards picked from past quizzes on the history page, shuffled; empty picks start nothing. */
+export function startHistorySession(
+  picks: { record: QuizRecord; pick: Pick }[],
+  excluded: readonly string[],
+  rng: Rng = Math.random,
+) {
+  const cards = shuffledCombined(picks, excluded, rng);
+  if (cards.length > 0) dispatch({ type: "start", mode: "history", cards });
+  return cards.length;
 }
