@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LEVEL_SIZES, type LevelSize } from "@/lib/levels";
 import { ROMAJI_MODES, type RomajiMode } from "@/lib/storage";
 import { updateSettings, useStore } from "@/lib/store";
 import { HomeLink } from "./HomeLink";
@@ -72,6 +73,32 @@ export function Settings() {
             {ROMAJI_MODES.map((mode) => (
               <option key={mode} value={mode}>
                 {ROMAJI_LABELS[mode]}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <section aria-labelledby="levels-heading" className="flex flex-col gap-3">
+        <h2 id="levels-heading" className="font-semibold">
+          Levels
+        </h2>
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3">
+          <div>
+            <label htmlFor="level-size" className="font-medium">
+              Words per level
+            </label>
+            <p className="text-sm text-muted-foreground">Each size keeps its own progress</p>
+          </div>
+          <select
+            id="level-size"
+            value={settings.levelSize}
+            onChange={(e) => updateSettings({ ...settings, levelSize: Number(e.target.value) as LevelSize })}
+            className="rounded-xl border-2 border-border bg-card px-3 py-2 outline-none focus:border-foreground"
+          >
+            {LEVEL_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size}
               </option>
             ))}
           </select>

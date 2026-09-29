@@ -37,6 +37,12 @@ export function Home() {
           Start quiz
         </Link>
         <Link
+          href="/levels"
+          className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold"
+        >
+          Levels
+        </Link>
+        <Link
           href="/history"
           className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold"
         >

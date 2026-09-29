@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LevelRefSchema, type LevelRef } from "./levels";
 import { applyAnswer, emptyProgress, MissedEntrySchema, ProgressSchema, restoreEntry } from "./progress";
 import { ANSWERS, LevelSchema, type Answer } from "./types";
 
@@ -14,8 +15,10 @@ export const ResultSchema = z.object({
 export type Result = z.infer<typeof ResultSchema>;
 
 export const SessionSchema = z.object({
-  /** "history" replays cards picked on the history page */
-  mode: z.enum(["normal", "review", "history"]),
+  /** "history" replays cards picked on the history page, "level" plays one level of the levels page */
+  mode: z.enum(["normal", "review", "history", "level"]),
+  /** set in "level" mode; a review level puts missed cards back at the end */
+  level: LevelRefSchema.nullable().default(null),
   cards: z.array(CardRefSchema),
   index: z.number().int().min(0),
   flipped: z.boolean(),
@@ -35,7 +38,7 @@ export type StudyState = z.infer<typeof StudyStateSchema>;
 export const initialStudyState = (): StudyState => ({ progress: emptyProgress(), session: null });
 
 export type StudyAction =
-  | { type: "start"; mode: SessionMode; cards: CardRef[] }
+  | { type: "start"; mode: SessionMode; cards: CardRef[]; level?: LevelRef }
   | { type: "flip" }
   | { type: "answer"; answer: Answer }
   | { type: "undo" }
@@ -55,6 +58,7 @@ export function studyReducer(state: StudyState, action: StudyAction): StudyState
         progress,
         session: {
           mode: action.mode,
+          level: action.level ?? null,
           cards: action.cards,
           index: 0,
           flipped: false,
@@ -75,10 +79,12 @@ export function studyReducer(state: StudyState, action: StudyAction): StudyState
       // grading is only allowed once the answer has been revealed
       if (!card || !session.flipped) return state;
       const prev = progress.missed[card.id] ?? null;
+      const requeue = action.answer === "wrong" && session.level?.review;
       return {
         progress: applyAnswer(progress, card.id, card.level, action.answer),
         session: {
           ...session,
+          cards: requeue ? [...session.cards, card] : session.cards,
           index: session.index + 1,
           flipped: false,
           results: [...session.results, { id: card.id, answer: action.answer, prev }],
@@ -88,10 +94,13 @@ export function studyReducer(state: StudyState, action: StudyAction): StudyState
     case "undo": {
       if (!canUndo(session)) return state;
       const last = session.results[session.results.length - 1];
+      // a card requeued by this answer is still the last one: later requeues were undone first
+      const requeued = last.answer === "wrong" && session.level?.review;
       return {
         progress: restoreEntry(progress, last.id, last.prev),
         session: {
           ...session,
+          cards: requeued ? session.cards.slice(0, -1) : session.cards,
           index: session.index - 1,
           flipped: true,
           results: session.results.slice(0, -1),
@@ -112,6 +121,7 @@ export function summarize(session: Session) {
     right: session.results.length - wrong,
     wrong,
     excluded: session.results.filter((r) => r.answer === "exclude").length,
-    wrongIds: session.results.filter((r) => r.answer === "wrong").map((r) => r.id),
+    /** each missed word once, even when a review level asked it again */
+    wrongIds: [...new Set(session.results.filter((r) => r.answer === "wrong").map((r) => r.id))],
   };
 }

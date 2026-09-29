@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { COUNT_OPTIONS, type DeckCount } from "./deck";
 import { HistorySchema, type History } from "./history";
+import { LEVEL_SIZES, LevelProgressSchema, type LevelProgress, type LevelSize } from "./levels";
 import { initialStudyState, StudyStateSchema, type StudyState } from "./session";
 import { LEVELS, LevelSchema, type Level } from "./types";
 
@@ -17,6 +18,8 @@ export const SettingsSchema = z.object({
   romaji: z.enum(ROMAJI_MODES).default("off"),
   /** word ids left out of every session */
   excluded: z.array(z.string()).default(() => []),
+  /** words per level on the levels page */
+  levelSize: z.union(LEVEL_SIZES.map((n) => z.literal(n))).default(LEVEL_SIZES[0]),
 });
 export type Settings = {
   levels: Level[];
@@ -24,6 +27,7 @@ export type Settings = {
   furigana: boolean;
   romaji: RomajiMode;
   excluded: string[];
+  levelSize: LevelSize;
 };
 
 export const defaultSettings = (): Settings => ({
@@ -32,6 +36,7 @@ export const defaultSettings = (): Settings => ({
   furigana: false,
   romaji: "off",
   excluded: [],
+  levelSize: LEVEL_SIZES[0],
 });
 
 export const showsRomaji = (mode: RomajiMode, side: "front" | "back") => mode === side || mode === "both";
@@ -41,13 +46,16 @@ const StoredSchema = z.object({
   settings: SettingsSchema,
   /** finished quizzes, oldest first */
   history: HistorySchema.default(() => []),
+  /** completed levels on the levels page */
+  levels: LevelProgressSchema.default(() => ({})),
 });
-export type Stored = { study: StudyState; settings: Settings; history: History };
+export type Stored = { study: StudyState; settings: Settings; history: History; levels: LevelProgress };
 
 export const defaultStored = (): Stored => ({
   study: initialStudyState(),
   settings: defaultSettings(),
   history: [],
+  levels: {},
 });
 
 function storage(): Storage | null {

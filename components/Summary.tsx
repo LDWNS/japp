@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Suspense, use } from "react";
 import { startReviewSession } from "@/lib/actions";
 import { loadWords } from "@/lib/data";
+import { levelLabel } from "@/lib/levels";
 import { missedCount } from "@/lib/progress";
 import { isDone, summarize, type Session } from "@/lib/session";
 import { useStore } from "@/lib/store";
@@ -47,7 +48,11 @@ export function Summary() {
           {stats.answered} of {stats.total} cards answered
           {session.mode === "review" && " · review"}
           {session.mode === "history" && " · from history"}
+          {session.level && ` · ${levelLabel(session.level)}`}
         </p>
+        {session.level && !session.endedEarly && (
+          <p className="font-semibold text-good">{session.level.review ? "Review passed" : "Level done"}</p>
+        )}
         {stats.excluded > 0 && (
           <p className="text-sm text-muted-foreground">
             {stats.excluded} {stats.excluded === 1 ? "word" : "words"} excluded as known
@@ -84,9 +89,15 @@ export function Summary() {
         >
           Practice missed ({pile})
         </button>
-        <Link href="/quiz" className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold">
-          New session
-        </Link>
+        {session.level ? (
+          <Link href="/levels" className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold">
+            Back to levels
+          </Link>
+        ) : (
+          <Link href="/quiz" className="rounded-xs border-2 border-foreground py-3.5 text-center font-semibold">
+            New session
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -132,3 +132,32 @@ describe("summarize", () => {
     expect(summarize(s)).toMatchObject({ right: 2, wrong: 1, excluded: 1 });
   });
 });
+
+describe("review levels", () => {
+  const review: StudyAction = {
+    type: "start",
+    mode: "level",
+    cards: cards.slice(0, 2),
+    level: { jlpt: "N5", size: 10, stage: 5, review: true },
+  };
+
+  it("put a missed card back at the end until it's answered right", () => {
+    const s = run([review, flip, wrong, flip, right]).session!;
+    expect(s.cards.map((c) => c.id)).toEqual(["a", "b", "a"]);
+    expect(isDone(s)).toBe(false);
+    const done = run([flip, right], { progress: initialStudyState().progress, session: s }).session!;
+    expect(isDone(done)).toBe(true);
+    expect(summarize(done)).toMatchObject({ right: 2, wrong: 1, wrongIds: ["a"] });
+  });
+
+  it("undo takes the requeued card back out", () => {
+    const s = run([review, flip, wrong, undo]).session!;
+    expect(s.cards.map((c) => c.id)).toEqual(["a", "b"]);
+    expect(s.index).toBe(0);
+  });
+
+  it("normal levels don't requeue", () => {
+    const s = run([{ ...review, level: { ...review.level!, review: false } }, flip, wrong]).session!;
+    expect(s.cards).toHaveLength(2);
+  });
+});

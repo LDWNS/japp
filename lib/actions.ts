@@ -3,7 +3,9 @@
 import { loadWords } from "./data";
 import { buildDeck, shuffle, type Rng } from "./deck";
 import { shuffledCombined, type Pick, type QuizRecord } from "./history";
+import { buildStages, stageCards } from "./levels";
 import { pileCards, type Progress } from "./progress";
+import type { Level } from "./types";
 import type { Settings } from "./storage";
 import { dispatch } from "./store";
 
@@ -38,5 +40,27 @@ export function startHistorySession(
 ) {
   const cards = shuffledCombined(picks, excluded, rng);
   if (cards.length > 0) dispatch({ type: "start", mode: "history", cards });
+  return cards.length;
+}
+
+/** One level (or review level) of the levels page; returns the card count, 0 starts nothing. */
+export async function startLevelSession(
+  jlpt: Level,
+  size: number,
+  stageIndex: number,
+  excluded: readonly string[],
+  rng: Rng = Math.random,
+) {
+  const words = await loadWords([jlpt]);
+  const stage = buildStages([...words.values()], size)[stageIndex];
+  if (!stage) return 0;
+  const cards = stageCards(stage, jlpt, excluded, rng);
+  if (cards.length === 0) return 0;
+  dispatch({
+    type: "start",
+    mode: "level",
+    cards,
+    level: { jlpt, size, stage: stageIndex, review: stage.kind === "review" },
+  });
   return cards.length;
 }

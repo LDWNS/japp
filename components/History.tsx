@@ -15,6 +15,7 @@ const MODE_LABEL: Record<QuizRecord["mode"], string> = {
   normal: "Quiz",
   review: "Missed review",
   history: "History review",
+  level: "Level",
 };
 
 function dayLabel(day: string, now = new Date()) {
