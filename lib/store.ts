@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { addRecord, recordOf } from "./history";
+import { markCompleted } from "./levels";
 import { isDone, studyReducer, type StudyAction, type StudyState } from "./session";
 import { load, save, STORAGE_KEY, type Settings, type Stored } from "./storage";
 
@@ -65,7 +66,10 @@ export function dispatch(action: StudyAction) {
   const finished = study.session && isDone(study.session) && !(prev.study.session && isDone(prev.study.session));
   const record = finished && study.session ? recordOf(study.session, new Date()) : null;
   if (record) history = addRecord(history, record);
-  set({ study, settings, history });
+  // a level counts as done once every card is answered; a review level only ends when all are right
+  let { levels } = prev;
+  if (finished && study.session?.level && !study.session.endedEarly) levels = markCompleted(levels, study.session.level);
+  set({ study, settings, history, levels });
 }
 
 export function updateSettings(settings: Settings) {

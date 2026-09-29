@@ -8,7 +8,7 @@ export const HISTORY_LIMIT = 500;
 export const QuizRecordSchema = z.object({
   /** ISO timestamp of when the quiz finished */
   finishedAt: z.string(),
-  mode: z.enum(["normal", "review", "history"]),
+  mode: z.enum(["normal", "review", "history", "level"]),
   /** answered cards only, in quiz order */
   cards: z.array(CardRefSchema),
   wrongIds: z.array(z.string()),
@@ -26,7 +26,8 @@ export function recordOf(session: Session, finishedAt: Date): QuizRecord | null 
   return {
     finishedAt: finishedAt.toISOString(),
     mode: session.mode,
-    cards: session.cards.filter((c) => answered.has(c.id)),
+    // review levels repeat missed cards; the record lists each card once
+    cards: [...new Map(session.cards.filter((c) => answered.has(c.id)).map((c) => [c.id, c])).values()],
     wrongIds: summarize(session).wrongIds,
     endedEarly: session.endedEarly,
   };

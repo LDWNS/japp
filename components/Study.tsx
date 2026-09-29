@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, use, useCallback, useEffect } from "react";
 import { loadWords } from "@/lib/data";
+import { levelLabel } from "@/lib/levels";
 import { canUndo, currentCard, isDone, type Session } from "@/lib/session";
 import type { Settings } from "@/lib/storage";
 import { dispatch, useStore } from "@/lib/store";
@@ -82,6 +83,7 @@ function StudyDeck({ session, settings }: { session: Session; settings: Settings
           </p>
           {session.mode === "review" && <p className="text-xs text-bad">Reviewing missed</p>}
           {session.mode === "history" && <p className="text-xs text-muted-foreground">From history</p>}
+          {session.level && <p className="text-xs text-muted-foreground">{levelLabel(session.level)}</p>}
         </div>
         <button
           type="button"

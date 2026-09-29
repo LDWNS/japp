@@ -4,6 +4,9 @@ Tinder-style JLPT vocabulary flashcards (N5–N2). Static Next.js export, works 
 
 - Welcome menu: start quiz, browse word lists (per level, searchable), settings (coming soon).
 - Pick levels + card count → random deck. Tap to reveal, swipe right (got it) / left (missed).
+- Levels: each JLPT list cut into levels of 10 words (size in settings), unlocked one by one.
+  Every 5 levels a review of 20 words (mostly from those 5) must be cleared to go on; missed
+  review cards come back at the end until answered right.
 - Missed cards go to a review pile; they leave after 2 correct answers in a row (any session).
 - Multi-step undo, end-of-session summary. Desktop: Space reveal, ←/→ grade, Backspace undo.
 
